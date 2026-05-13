@@ -237,3 +237,154 @@ CALL Update_Expensive_Book_Category();
 -- =========================================================
 
 SELECT * FROM Books;
+
+
+-- =========================================================
+-- STORED FUNCTIONS
+-- LIBRARY MANAGEMENT SYSTEM
+-- =========================================================
+
+-- =========================================================
+-- FUNCTION 1
+-- GET TOTAL NUMBER OF BOOKS
+-- =========================================================
+
+DELIMITER $$
+
+CREATE FUNCTION Get_Total_Books()
+RETURNS INT
+DETERMINISTIC
+
+BEGIN
+
+    DECLARE total INT;
+
+    SELECT COUNT(*)
+    INTO total
+    FROM Books;
+
+    RETURN total;
+
+END $$
+
+DELIMITER ;
+
+-- Execute Function
+SELECT Get_Total_Books() AS Total_Books;
+
+-- =========================================================
+-- FUNCTION 2
+-- GET TOTAL PRICE OF ALL BOOKS
+-- =========================================================
+
+DELIMITER $$
+
+CREATE FUNCTION Get_Total_Book_Price()
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+
+BEGIN
+
+    DECLARE total_price DECIMAL(10,2);
+
+    SELECT SUM(Price)
+    INTO total_price
+    FROM Books;
+
+    RETURN total_price;
+
+END $$
+
+DELIMITER ;
+
+-- Execute Function
+SELECT Get_Total_Book_Price() AS Total_Book_Price;
+
+-- =========================================================
+-- FUNCTION 3
+-- FIND AVERAGE BOOK PRICE
+-- =========================================================
+
+DELIMITER $$
+
+CREATE FUNCTION Get_Average_Book_Price()
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+
+BEGIN
+
+    DECLARE avg_price DECIMAL(10,2);
+
+    SELECT AVG(Price)
+    INTO avg_price
+    FROM Books;
+
+    RETURN avg_price;
+
+END $$
+
+DELIMITER ;
+
+-- Execute Function
+SELECT Get_Average_Book_Price() AS Average_Book_Price;
+
+-- =========================================================
+-- FUNCTION 4
+-- CHECK WHETHER A BOOK IS EXPENSIVE
+-- =========================================================
+
+DELIMITER $$
+
+CREATE FUNCTION Check_Book_Category(book_price DECIMAL(10,2))
+RETURNS VARCHAR(20)
+DETERMINISTIC
+
+BEGIN
+
+    DECLARE result VARCHAR(20);
+
+    IF book_price > 500 THEN
+        SET result = 'Expensive';
+    ELSE
+        SET result = 'Affordable';
+    END IF;
+
+    RETURN result;
+
+END $$
+
+DELIMITER ;
+
+-- Execute Function
+SELECT Book_Name,
+       Price,
+       Check_Book_Category(Price) AS Price_Status
+FROM Books;
+
+-- =========================================================
+-- FUNCTION 5
+-- GET HIGHEST BOOK PRICE
+-- =========================================================
+
+DELIMITER $$
+
+CREATE FUNCTION Get_Max_Book_Price()
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+
+BEGIN
+
+    DECLARE max_price DECIMAL(10,2);
+
+    SELECT MAX(Price)
+    INTO max_price
+    FROM Books;
+
+    RETURN max_price;
+
+END $$
+
+DELIMITER ;
+
+-- Execute Function
+SELECT Get_Max_Book_Price() AS Highest_Book_Price;

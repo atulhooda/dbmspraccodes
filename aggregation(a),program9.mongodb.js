@@ -1,27 +1,23 @@
-Here’s a complete MongoDB example for **Aggregation and Indexing in MongoDB** using an `employee` collection.
-
----
-
 # 1. Create Database
 
-```javascript id="spdtpk"
-use companyDB
-```
+javascript id="g3r9tk"
+use salesDB
+
 
 ---
 
-# 2. Create Employee Collection and Insert Records
+# 2. Create Orders Collection and Insert Documents
 
-```javascript id="n1u3zs"
-db.employee.insertMany([
-  { emp_id: 1, name: "Amit", department: "HR", salary: 30000, city: "Pune" },
-  { emp_id: 2, name: "Rohit", department: "IT", salary: 50000, city: "Mumbai" },
-  { emp_id: 3, name: "Sneha", department: "Finance", salary: 45000, city: "Delhi" },
-  { emp_id: 4, name: "Priya", department: "IT", salary: 60000, city: "Pune" },
-  { emp_id: 5, name: "Karan", department: "HR", salary: 35000, city: "Loni" },
-  { emp_id: 6, name: "Neha", department: "Finance", salary: 55000, city: "Mumbai" },
-  { emp_id: 7, name: "Arjun", department: "IT", salary: 70000, city: "Pune" },
-  { emp_id: 8, name: "Riya", department: "HR", salary: 32000, city: "Delhi" }
+```javascript id="h1v8qm"
+db.orders.insertMany([
+  { cust_id: "C1", status: "A", amount: 100 },
+  { cust_id: "C1", status: "A", amount: 200 },
+  { cust_id: "C1", status: "B", amount: 300 },
+  { cust_id: "C2", status: "A", amount: 400 },
+  { cust_id: "C2", status: "A", amount: 150 },
+  { cust_id: "C2", status: "B", amount: 250 },
+  { cust_id: "C3", status: "A", amount: 500 },
+  { cust_id: "C3", status: "A", amount: 350 }
 ])
 ```
 
@@ -29,38 +25,21 @@ db.employee.insertMany([
 
 # 3. Display All Records
 
-```javascript id="6dth5s"
-db.employee.find()
+```javascript id="hwb1al"
+db.orders.find()
 ```
 
 ---
 
-# 4. Aggregation — Filtering Records
+# 4. Total Amount for Individual Customer ID having Status A
 
-## Employees with salary greater than 40000
-
-```javascript id="t17hlz"
-db.employee.aggregate([
-  {
-    $match: { salary: { $gt: 40000 } }
-  }
-])
-```
-
----
-
-# 5. Aggregation — Grouping Records
-
-## Group employees by department and calculate total salary
-
-```javascript id="d3wht4"
-db.employee.aggregate([
+```javascript id="8e3jkn"
+db.orders.aggregate([
+  { $match: { status: "A" } },
   {
     $group: {
-      _id: "$department",
-      total_salary: { $sum: "$salary" },
-      average_salary: { $avg: "$salary" },
-      employee_count: { $sum: 1 }
+      _id: "$cust_id",
+      total_amount: { $sum: "$amount" }
     }
   }
 ])
@@ -68,125 +47,453 @@ db.employee.aggregate([
 
 ---
 
-# 6. Aggregation — Sorting Records
+# 5. Minimum Amount for Individual Customer ID having Status A
 
-## Sort employees by salary in ascending order
-
-```javascript id="0oqv5k"
-db.employee.aggregate([
+```javascript id="a2v7xt"
+db.orders.aggregate([
+  { $match: { status: "A" } },
   {
-    $sort: { salary: 1 }
-  }
-])
-```
-
-## Descending order
-
-```javascript id="t7wk0k"
-db.employee.aggregate([
-  {
-    $sort: { salary: -1 }
+    $group: {
+      _id: "$cust_id",
+      min_amount: { $min: "$amount" }
+    }
   }
 ])
 ```
 
 ---
 
-# 7. Aggregation — Skipping Records
+# 6. Maximum Amount for Individual Customer ID having Status A
 
-## Skip first 3 records
-
-```javascript id="k1m7g9"
-db.employee.aggregate([
+```javascript id="6v2qjm"
+db.orders.aggregate([
+  { $match: { status: "A" } },
   {
-    $skip: 3
+    $group: {
+      _id: "$cust_id",
+      max_amount: { $max: "$amount" }
+    }
   }
 ])
 ```
 
 ---
 
-# 8. Aggregation — Limiting Records
+# 7. Average Amount for Individual Customer ID having Status A
 
-## Display first 5 records only
-
-```javascript id="d5hmwd"
-db.employee.aggregate([
+```javascript id="4s1kzw"
+db.orders.aggregate([
+  { $match: { status: "A" } },
   {
-    $limit: 5
+    $group: {
+      _id: "$cust_id",
+      avg_amount: { $avg: "$amount" }
+    }
   }
 ])
 ```
 
 ---
 
-# 9. Combined Aggregation Example
+# 8. Amount of First Record for Individual Customer ID having Status A
 
-## Filter IT department → Sort by salary → Limit 2 records
-
-```javascript id="shd6w0"
-db.employee.aggregate([
+```javascript id="6u1nvy"
+db.orders.aggregate([
+  { $match: { status: "A" } },
   {
-    $match: { department: "IT" }
-  },
-  {
-    $sort: { salary: -1 }
-  },
-  {
-    $limit: 2
+    $group: {
+      _id: "$cust_id",
+      first_amount: { $first: "$amount" }
+    }
   }
 ])
 ```
 
 ---
 
-# 10. Create Index on emp_id
+# 9. Amount of Last Record for Individual Customer ID having Status A
 
-```javascript id="0bhg4z"
-db.employee.createIndex({ emp_id: 1 })
+```javascript id="z1o8wf"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  {
+    $group: {
+      _id: "$cust_id",
+      last_amount: { $last: "$amount" }
+    }
+  }
+])
 ```
 
 ---
 
-# 11. Create Compound Index
+# 10. Create Array of Amount for Individual Customer ID having Status A
 
-## Index on department and salary
-
-```javascript id="o3m8wp"
-db.employee.createIndex({
-  department: 1,
-  salary: -1
-})
+```javascript id="iy3xpr"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  {
+    $group: {
+      _id: "$cust_id",
+      amount_array: { $push: "$amount" }
+    }
+  }
+])
 ```
 
 ---
 
-# 12. Show All Indexes
+# 11. After Sorting — Total Amount for Individual Customer ID
 
-```javascript id="4r9xux"
-db.employee.getIndexes()
+```javascript id="fj6k2q"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      total_amount: { $sum: "$amount" }
+    }
+  }
+])
 ```
 
 ---
 
-# 13. Delete Employee Collection
+# 12. After Sorting — Average Amount for Individual Customer ID
 
-```javascript id="br2xev"
-db.employee.drop()
+```javascript id="vh8n0m"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      avg_amount: { $avg: "$amount" }
+    }
+  }
+])
 ```
 
 ---
 
-# 14. Show Collections
+# 13. After Sorting — Minimum Amount for Individual Customer ID
 
-```javascript id="mzjlwm"
-show collections
+```javascript id="rk9dws"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      min_amount: { $min: "$amount" }
+    }
+  }
+])
 ```
 
 ---
 
-# 15. Exit MongoDB
+# 14. After Sorting — Maximum Amount for Individual Customer ID
 
-```javascript id="j4g2xk"
-exit
+```javascript id="up1xql"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      max_amount: { $max: "$amount" }
+    }
+  }
+])
 ```
+
+---
+
+# 15. After Sorting — Amount of First Record
+
+```javascript id="1v7dco"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      first_amount: { $first: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 16. After Sorting — Amount of Last Record
+
+```javascript id="t0n9me"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      last_amount: { $last: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 17. After Sorting — Create Array of Amount
+
+```javascript id="c4y0wr"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $sort: { amount: 1 } },
+  {
+    $group: {
+      _id: "$cust_id",
+      amount_array: { $push: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 18. Without First Record — Total Amount
+
+```javascript id="tw0mfs"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      total_amount: { $sum: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 19. Without First Record — Average Amount
+
+```javascript id="0u8mle"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      avg_amount: { $avg: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 20. Without First Record — Maximum Amount
+
+```javascript id="jlwm31"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      max_amount: { $max: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 21. Without First Record — Minimum Amount
+
+```javascript id="a6h7tv"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      min_amount: { $min: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 22. Without First Record — Create Array of Amount
+
+```javascript id="m3xjpf"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      amount_array: { $push: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 23. Without First Record — Amount of First Record
+
+```javascript id="n2w1zk"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      first_amount: { $first: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 24. Without First Record — Amount of Last Record
+
+```javascript id="j0v4as"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $skip: 1 },
+  {
+    $group: {
+      _id: "$cust_id",
+      last_amount: { $last: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 25. First 2 Records Only — Total Amount
+
+```javascript id="x4h7la"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      total_amount: { $sum: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 26. First 2 Records Only — Average Amount
+
+```javascript id="9d7mte"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      avg_amount: { $avg: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 27. First 2 Records Only — Minimum Amount
+
+```javascript id="0c5yzp"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      min_amount: { $min: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 28. First 2 Records Only — Maximum Amount
+
+```javascript id="r5b1ho"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      max_amount: { $max: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 29. First 2 Records Only — Amount of First Record
+
+```javascript id="a7d3lj"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      first_amount: { $first: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 30. First 2 Records Only — Amount of Last Record
+
+```javascript id="6t1nqy"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      last_amount: { $last: "$amount" }
+    }
+  }
+])
+```
+
+---
+
+# 31. First 2 Records Only — Create Array of Amount
+
+```javascript id="kw2vbm"
+db.orders.aggregate([
+  { $match: { status: "A" } },
+  { $limit: 2 },
+  {
+    $group: {
+      _id: "$cust_id",
+      amount_array: { $push: "$amount" }
+    }
+  }
+])
+
